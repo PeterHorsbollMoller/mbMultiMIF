@@ -2,9 +2,9 @@
 Active File Display Mode=3
 Active File Index=1
 Open File Line0=0
-Open File Line1=803
+Open File Line1=262
 Open File Pos0=66
-Open File Pos1=607
+Open File Pos1=608
 Open File Window Pos0=0,1,-1,-1,-8,-30,100,100,1541,638
 Open File Window Pos1=2,3,-1,-1,-8,-30,125,125,1370,663
 Open File0=D:\Dropbox (Horsboll-Moller)\3. MB_Kode\mbMultiMIF\mbcode\MultiMIF.mbp
@@ -14,5 +14,4 @@ Remember Files=1
 
 [Project Information]
 	Project Start=E0070C0004000F00080013000500000026
-	Working Time=7748
-
+	Working Time=20237
