@@ -17,7 +17,7 @@ Include "Library\RibbonElements.def"
 
 Define xProgram 		"MultiMIF"
 Define xProgramMenu		"MultiMIF"
-Define xVersion 		"1.0"
+Define xVersion 		"1.0.1"
 Define xYear			"2016"
 Define xAddToMenuBar	FALSE
 
@@ -54,6 +54,11 @@ Dim	mnFile, mnNumFiles As Integer,
 Sub Main
 
 OnError GoTo ErrorOccured
+
+	If SystemInfo(SYS_INFO_MAPINFO_INTERFACE) = MIINTERFACE_RIBBON Then
+		Note "This tool only works with the new Ribbon interface of MapInfo Pro (v12.5.1, v15.2 or 16.0)"
+		End Program
+	End If
 
 	'***Initializing ApplicationInfo
 	Call PRGISetApplicationName(xProgram)
