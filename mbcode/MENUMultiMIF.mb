@@ -1,0 +1,221 @@
+'*******************************************************************************
+'**   Created by Peter Horsbøll Møller, Pitney Bowes Software
+'** 	Program:
+'** 	Modul:
+'**
+'*******************************************************************************
+
+'-------------------------------------
+Include "MapBasic.def"
+Include "Enums.def"
+Include "Icons.def"
+Include "Menu.def"
+'**default constants...
+Include "Library\Defaults.def"
+Include "Library\MI_ICONS_X64.def"
+Include "Library\RibbonElements.def"
+
+Define xProgram 		"MultiMIF"
+Define xProgramMenu		"MultiMIF"
+Define xVersion 		"1.0"
+Define xYear			"2016"
+Define xAddToMenuBar	FALSE
+
+Define FILE_INI			GetFolderPath$(FOLDER_MI_PREFERENCE) & xProgram & ".ini"
+Define FILE_DBG			ApplicationDirectory$() & xProgram & ".dbg"
+'Define FILE_DLL			ApplicationDirectory$() & xProgram & ".dll"
+Define FILE_PAD			GetFolderPath$(FOLDER_MI_PREFERENCE) & xProgram & ".btp"
+Define PATH_IMAGES			ApplicationDirectory$() & "Images"
+
+'-------------------------------------
+Include "Library\DEBUGLib.def"
+Include "Library\ERRORLib.def"
+Include "Library\FILELib.def"
+Include "Library\ProgramInfo.def"
+Include "Library\RIBBONLib.def"
+Include "Library\TABLELib.def"
+
+'-----------------------------------------------------------------------------------------
+Declare Sub Main
+Declare Sub MENUBuildRibbonInterface
+Declare Sub EndProgram
+Declare Sub EndHandler
+
+Declare Sub MENUMultiMIFImport
+Declare Sub MENUMultiMIFImport_Single
+
+Dim	mnFile, mnNumFiles As Integer,
+	msOutputFolder As String
+
+'**********************************************************************************************''
+'**   Created by Peter Horsbøll Møller, Pitney Bowes Software
+'
+'**********************************************************************************************''
+Sub Main
+
+OnError GoTo ErrorOccured
+
+	'***Initializing ApplicationInfo
+	Call PRGISetApplicationName(xProgram)
+	Call PRGISetApplicationVersion(xVersion)
+	Call PRGISetApplicationCopyrightYear(xYear)
+	Call PRGISetApplicationDevelopedBy("Peter Horsbøll Møller")
+
+	Call PRGISetDescription("This application lets you import multiple MIF files into MapInfo tables")
+	Call PRGISetApplicationImageUri(MI_IMG_APP_IMPORT_16)
+
+	'***Enabling Debug if file exists
+	Call DEBUGEnableByFile(FILE_DBG)
+
+	If SystemInfo(SYS_INFO_MAPINFO_INTERFACE) = MIINTERFACE_RIBBON Then
+		Call MENUBuildRibbonInterface
+	End If
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "Main")
+	Call ERRShow()
+
+End Sub
+
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub MENUBuildRibbonInterface
+
+Dim	nCtrlIdx As Integer
+
+OnError GoTo ErrorOccured
+
+	nCtrlIdx = RBNGroupAddButton("multiMIFImport", "MultiMIF", "", TAB_TABLE, TAB_GROUP_TABLE_DATA)
+	If nCtrlIdx > 0 Then
+		'Create & Set the button tooltip
+		Call RBNControlSetToolTipIdx(nCtrlIdx, "MultiMIF", "Import multiple MIF files to MapInfo tables", "")
+		'Set the button icon
+		Call RBNControlSetIconsIdx(nCtrlIdx, CONTROL_SIZE_SMALL, MI_IMG_APP_IMPORT_16, MI_IMG_APP_IMPORT_32)
+		'Set Custom MapBasic Handle to the button
+		Call RBNControlSetCustomMBXHandlerIdx(nCtrlIdx, "MENUMultiMIFImport")
+	End If
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUBuildRibbonInterface")
+	Call ERRShow()
+
+End Sub
+
+'****************************************
+'**   Created by Peter Horsbøll Møller, Pitney Bowes Software
+'**   Ending MapBasic application
+'****************************************
+Sub EndProgram
+
+OnError GoTo ErrorOccured
+
+	End Program
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "EndProgram")
+	Call ERRShow()
+
+End Sub
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub EndHandler
+
+OnError GoTo ErrorOccured
+
+	If SystemInfo(SYS_INFO_MAPINFO_INTERFACE) = MIINTERFACE_RIBBON Then
+		Call RBNEndHandler
+	End If
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "EndHandler")
+	Call ERRShow()
+
+End Sub
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub MENUMultiMIFImport
+
+Dim	sFirstFile As String
+
+OnError GoTo ErrorOccured
+
+	mnNumFiles	= FILEOpenFilesDlg("Select MIF files to import", "", "MapInfo MIF (*.mif)| *.mif")
+	If mnNumFiles = 0 Then
+		Exit Sub
+	End If
+
+	sFirstFile	= FILEGetOpenFilesDlgFileName(1)
+	msOutputFolder	= FileSaveAsDlg(PathToDirectory$(sFirstFile), FILEChangeExtension(PathToFileName$(sFirstFile), "TAB"), "TAB", "Please select folder to store the tab files...")
+	If msOutputFolder = "" Then
+		Exit Sub
+	End If
+	msOutputFolder	= PathToDirectory$(msOutputFolder)
+
+	mnFile = 1
+	Progressbar "Importing " & FormatNumber$(mnNumFiles) & " MIF files..."
+		Calling MENUMultiMIFImport_Single
+		Range mnNumFiles
+
+	Call RBNNotificationShow("MultiMIF", FormatNumber$(mnNumFiles) & " MIF files have been imported!", Notify_Info, 5000)
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUMultiMIFImport")
+	Call ERRShow()
+
+End Sub
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes Software
+'Parameters:
+'
+'**********************************************************************************************''
+Sub MENUMultiMIFImport_Single
+
+Dim	sMIFFile, sTabFile, sFile As String
+
+OnError GoTo ErrorOccured
+
+	sMIFFile	= FILEGetOpenFilesDlgFileName(mnFile)
+	sFile	= PathToFileName$(sMIFFile)
+	sTabFile	= msOutputFolder & FILEChangeExtension(sFile, "TAB")
+
+	Import sMIFFile
+		Type "MIF"
+		Into sTabFile
+		Overwrite
+
+	mnFile	= mnFile + 1
+	If mnFile > mnNumFiles Then
+		Progressbar = -1
+	Else
+		Progressbar = mnFile
+	End If
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "MENUMultiMIFImport_Single")
+	Call ERRShow()
+
+End Sub
+

@@ -1,0 +1,13 @@
+[LINK]
+Application=..\MultiMIF\MultiMIF.mbx
+Module=Library\ARRAYLib.mbo
+Module=Library\CONFIGFILELib.mbo
+Module=Library\DEBUGLib.mbo
+Module=Library\ERRORLib.mbo
+Module=Library\FILELib.mbo
+Module=Library\ProgramInfo.mbo
+Module=Library\RESSTRNGLib.mbo
+Module=Library\RIBBONLib.mbo
+Module=Library\STRINGLib.mbo
+Module=Library\TABLELib.mbo
+Module=MenuMultiMIF.mbo
